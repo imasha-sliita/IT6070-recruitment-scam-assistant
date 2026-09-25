@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Recruitment Scam Red-Flag Assistant</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+</head>
+<body>
+  <header class="header">
+    <div class="wrap">
+      <h1>Recruitment Scam Red-Flag Assistant</h1>
+      <p class="tagline">IT6070 PoC — career counselor workflow (not legal or official bank advice)</p>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section class="card">
+      <form method="post" class="form">
+        <label for="message">Job ad or recruiter message</label>
+        <textarea id="message" name="message" rows="8" placeholder="Paste the full advertisement or chat text here…">{{ message }}</textarea>
+
+        <div class="row">
+          <label class="check">
+            <input type="checkbox" name="use_llm" {% if use_llm %}checked{% endif %} />
+            Use Gemini LLM when API key is set
+          </label>
+          <span class="pill {% if has_key %}pill-ok{% else %}pill-muted{% endif %}">
+            API key: {% if has_key %}configured{% else %}missing (rules fallback){% endif %}
+          </span>
+        </div>
+
+        <label for="sample">Load sample</label>
+        <select id="sample" name="sample">
+          <option value="">— Select sample —</option>
+          <option value="scam_fee_whatsapp" {% if sample_key == 'scam_fee_whatsapp' %}selected{% endif %}>Sample: fee + WhatsApp scam</option>
+          <option value="suspicious_vague" {% if sample_key == 'suspicious_vague' %}selected{% endif %}>Sample: vague foreign job</option>
+          <option value="legit_style" {% if sample_key == 'legit_style' %}selected{% endif %}>Sample: formal company ad</option>
+        </select>
+
+        {% if error %}
+        <div class="alert alert-error" role="alert">{{ error }}</div>
+        {% endif %}
+
+        <div class="actions">
+          <button type="submit" name="action" value="analyze" class="btn btn-primary">Feature 1 — Analyze red flags</button>
+          <button type="submit" name="action" value="guidance" class="btn btn-secondary">Feature 2 — Verification guidance</button>
+          <button type="submit" name="action" value="both" class="btn btn-ghost">Run both</button>
+        </div>
+      </form>
+    </section>
+
+    {% if analysis %}
+    <section class="card">
+      <h2>Feature 1 — Red-flag assessment</h2>
+      <p class="mode">Analysis: {{ analysis.source | upper }}</p>
+      <p class="risk {{ risk_class(analysis.risk) }}">{{ analysis.risk }}</p>
+      {% if analysis.red_flags %}
+      <h3>Red flags</h3>
+      <ul>
+        {% for f in analysis.red_flags %}
+        <li>{{ f }}</li>
+        {% endfor %}
+      </ul>
+      {% endif %}
+      <h3>Reasons</h3>
+      <ul>
+        {% for r in analysis.reasons %}
+        <li>{{ r }}</li>
+        {% endfor %}
+      </ul>
+    </section>
+    {% endif %}
+
+    {% if guidance %}
+    <section class="card">
+      <h2>Feature 2 — Verification &amp; safe guidance</h2>
+      <p class="mode">Guidance: {{ guidance.source | upper }}</p>
+      <h3>Questions to verify the employer</h3>
+      <ol>
+        {% for q in guidance.verification_questions %}
+        <li>{{ q }}</li>
+        {% endfor %}
+      </ol>
+      <h3>Safe guidance for the candidate</h3>
+      <p class="guidance">{{ guidance.safe_guidance }}</p>
+    </section>
+    {% endif %}
+  </main>
+
+  <footer class="footer wrap">
+    <p>Emerging tech: Generative AI (Gemini) with rule-based fallback · Human counselor must verify every result</p>
+  </footer>
+</body>
+</html>
